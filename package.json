@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "jest --coverage",
-    "test:ci": "jest --coverage --runInBand"
+    "test:ci": "jest --coverage --runInBand",
+    "build": "echo 'No build needed for basic Node.js project'"
   },
   "jest": {
   "reporters": [

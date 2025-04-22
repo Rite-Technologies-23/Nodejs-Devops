@@ -29,8 +29,8 @@ jobs:
       - name: Install Dependencies
         run: npm install  # Installs dependencies
 
-      # - name: Build Project
-      #   run: npm run build 
+      - name: Build Project
+        run: npm run build 
 
       - name: Fix Jest Permission
         run: chmod +x ./node_modules/.bin/jest
@@ -58,6 +58,9 @@ jobs:
         with:
           name: jest-junit-report
           path: reports/junit/js-test-results.xml
-
-
-     
+      
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v4
+        env:
+         SONAR_TOKEN: ${{  secrets.SONAR_TOKEN  }}
+         
