@@ -5,6 +5,10 @@ on:
     branches:
       - "**" # Runs on all branches except main
 
+  pull_request:
+    branches:
+      - "*" 
+
 permissions:
   contents: read
   actions: read
