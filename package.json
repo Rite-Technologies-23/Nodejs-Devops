@@ -1,0 +1,38 @@
+{
+  "name": "nodejs-devops",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest --coverage",
+    "test:ci": "jest --coverage --runInBand",
+    "build": "echo 'No build needed for basic Node.js project'"
+  },
+  "jest": {
+  "reporters": [
+    "default",
+    [ "jest-junit", {
+      "outputDirectory": "reports/junit",
+      "outputName": "js-test-results.xml"
+    }]
+  ],
+  "coverageThreshold": {
+    "global": {
+      "branches": 80,
+      "functions": 80,
+      "lines": 80,
+      "statements": 80
+    }
+  }
+},
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "jest-junit": "^16.0.0"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "supertest": "^7.1.0"
+  }
+}

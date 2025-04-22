@@ -1,0 +1,63 @@
+name: Node.js Push Pipeline
+
+on:
+  push:
+    branches:
+      - "**" # Runs on all branches except main
+
+permissions:
+  contents: read
+  actions: read
+  checks: write
+
+jobs:
+  BuildAndUnitTestApp:
+    runs-on: ubuntu-latest
+
+    steps:
+      
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+     
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+         node-version: 18
+
+     
+      - name: Install Dependencies
+        run: npm install  # Installs dependencies
+
+      - name: Build Project
+        run: npm run build 
+
+      - name: Fix Jest Permission
+        run: chmod +x ./node_modules/.bin/jest
+
+      - name: Run Unit Tests
+        run: ./node_modules/.bin/jest --runInBand
+
+      - name: Run Unit Tests with Coverage
+        run: npm test -- --runInBand --coverage
+
+      - name: Upload Coverage Report (HTML)
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-coverage-report
+          path: coverage/lcov-report/
+      
+      - name: Upload lcov.info
+        uses: actions/upload-artifact@v4
+        with:
+          name: lcov
+          path: coverage/lcov.info
+
+      - name: Upload JUnit Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: jest-junit-report
+          path: reports/junit/js-test-results.xml
+
+
+     
