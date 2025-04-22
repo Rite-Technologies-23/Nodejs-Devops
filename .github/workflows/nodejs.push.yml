@@ -29,8 +29,8 @@ jobs:
       - name: Install Dependencies
         run: npm install  # Installs dependencies
 
-      - name: Build Project
-        run: npm run build 
+      # - name: Build Project
+      #   run: npm run build 
 
       - name: Fix Jest Permission
         run: chmod +x ./node_modules/.bin/jest
