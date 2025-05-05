@@ -39,7 +39,7 @@ jobs:
       - name: Fix Jest Permission
         run: chmod +x ./node_modules/.bin/jest
 
-        - name: Run Unit Tests with JSON Output
+      - name: Run Unit Tests with JSON Output
         run: |
           # Run the tests and generate the JSON output
           ./node_modules/.bin/jest test/test.js --json --outputFile=jest-output.json --runInBand
