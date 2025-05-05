@@ -25,7 +25,7 @@ describe('Logout API', () => {
   it('minor: should return 200 for valid token', async () => {  // Minor test case
     const res = await request(app)
       .post('/logout')
-      .send({ token: 'abc123' });
+      .send({ token: 'abc121' });
 
     expect(res.statusCode).toBe(200);
     expect(res.body.message).toBe('Logout successful');
