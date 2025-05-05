@@ -41,42 +41,38 @@ jobs:
 
       - name: Run Unit Tests with JSON Output
         run: |
-          # Run the tests and generate the JSON output
-          ./node_modules/.bin/jest test/test.js --json --outputFile=jest-output.json --runInBand
-        continue-on-error: true # Allow the pipeline to continue even if tests fail
-
+          # Run tests and generate JSON output, even if some fail
+          npx jest --json --outputFile=jest-output.json --runInBand
+        continue-on-error: true
+      
       - name: Check Test Failures
         run: |
-          # Ensure jest-output.json file exists
+          # Check if the output file exists
           if [ ! -f "jest-output.json" ]; then
-            echo "jest-output.json not found. Skipping failure checks."
+            echo "jest-output.json not found. Skipping checks."
             exit 0
           fi
-          
-          # Extract major test failures
-          major_failures=$(jq '[.testResults[] | select(.name | test("^major")) | .status] | unique' jest-output.json)
-          major_failures_count=$(echo $major_failures | jq length)
-
-          # Extract minor test failures (not stopping build, but logging)
-          minor_failures=$(jq '[.testResults[] | select(.name | test("^minor")) | .status] | unique' jest-output.json)
-          minor_failures_count=$(echo $minor_failures | jq length)
-
-          # Log the failures
-          echo "Major Failures: $major_failures_count"
-          echo "Minor Failures: $minor_failures_count"
-
-          # Check if there are major test failures, and fail the build only if major tests fail
-          if [ "$major_failures_count" -gt 0 ]; then
-            echo "Major test cases failed!"
+      
+          # Count major test failures
+          major_failures=$(jq '[.testResults[].assertionResults[] | select(.status == "failed" and (.title | test("^major:")))] | length' jest-output.json)
+      
+          # Count minor test failures
+          minor_failures=$(jq '[.testResults[].assertionResults[] | select(.status == "failed" and (.title | test("^minor:")))] | length' jest-output.json)
+      
+          echo "❗ Major test failures: $major_failures"
+          echo "Minor test failures: $minor_failures"
+      
+          if [ "$major_failures" -gt 0 ]; then
+            echo "Build failed due to major test case failures."
             exit 1
           else
-            echo "No major test cases failed. Proceeding with build..."
+            echo "No major test failures. Proceeding."
           fi
-
-          # If minor tests failed, just log the reason
-          if [ "$minor_failures_count" -gt 0 ]; then
-            echo "Minor test cases failed. This is non-critical."
+      
+          if [ "$minor_failures" -gt 0 ]; then
+            echo "⚠️ Minor test cases failed. Logged for reference, not blocking the build."
           fi
+      
 
       - name: Run Unit Tests with Coverage
         run: npm test -- --runInBand --coverage
