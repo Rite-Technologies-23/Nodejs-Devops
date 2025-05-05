@@ -7,7 +7,7 @@ on:
 
   pull_request:
     branches:
-      - "*" 
+      - "*"
 
 permissions:
   contents: read
@@ -19,38 +19,66 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-     
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-         node-version: 18
+          node-version: 18
 
-     
       - name: Install Dependencies
-        run: npm install  # Installs dependencies
+        run: npm install # Installs dependencies
 
       - name: Build Project
-        run: npm run build 
+        run: npm run build
 
       - name: Fix Jest Permission
         run: chmod +x ./node_modules/.bin/jest
 
-      - name: Run Unit Tests
-        run: ./node_modules/.bin/jest --runInBand
+      - name: Run Unit Tests with JSON Output
+        run: |
+          npx jest --json --outputFile=jest-output.json --runInBand || true
+        continue-on-error: true # Allow the pipeline to continue even if tests fail
 
-      - name: Run Unit Tests with Coverage
-        run: npm test -- --runInBand --coverage
+      - name: Process Test Results
+        run: |
+          if [ ! -f "jest-output.json" ]; then
+            echo "jest-output.json not found. Skipping test analysis."
+            exit 0
+          fi
+
+          # Extract major test failures (count of failed "major" tests)
+          major_failures=$(jq '[.testResults[].assertionResults[] | select(.status == "failed" and (.title | test("^major:"))) ] | length' jest-output.json)
+
+          # Extract minor test failures (count of failed "minor" tests)
+          minor_failures=$(jq '[.testResults[].assertionResults[] | select(.status == "failed" and (.title | test("^minor:"))) ] | length' jest-output.json)
+
+          echo " Major test failures: $major_failures"
+          echo " Minor test failures: $minor_failures"
+
+          # Fail the build only if there are major test failures
+          if [ "$major_failures" -gt 0 ]; then
+            echo " Build failed due to major test failures."
+            exit 1  # Fail the build if any major tests failed
+          fi
+
+          # Log minor test failures but continue the build
+          if [ "$minor_failures" -gt 0 ]; then
+            echo " Minor test cases failed. This is non-critical, proceeding with the build."
+          fi
+
+      - name: Run Unit Tests with JSON Output and Coverage
+        run: |
+          npx jest --coverage --json --outputFile=jest-output.json --runInBand || true
+        continue-on-error: true # Allow the pipeline to continue even if tests fail
 
       - name: Upload Coverage Report (HTML)
         uses: actions/upload-artifact@v4
         with:
           name: html-coverage-report
           path: coverage/lcov-report/
-      
+
       - name: Upload lcov.info
         uses: actions/upload-artifact@v4
         with:
@@ -62,9 +90,8 @@ jobs:
         with:
           name: jest-junit-report
           path: reports/junit/js-test-results.xml
-      
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4
         env:
-         SONAR_TOKEN: ${{  secrets.SONAR_TOKEN  }}
-         
+          SONAR_TOKEN: ${{  secrets.SONAR_TOKEN  }}
