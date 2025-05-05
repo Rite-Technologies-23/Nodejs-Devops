@@ -36,7 +36,7 @@ describe('Logout API', () => {
       .post('/logout')
       .send({ token: 'wrongtoken' });
 
-    expect(res.statusCode).toBe(400);
+    expect(res.statusCode).toBe(401);
     expect(res.body.message).toBe('Invalid token');
   });
 });
