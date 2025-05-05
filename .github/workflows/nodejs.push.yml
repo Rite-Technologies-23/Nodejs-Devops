@@ -41,36 +41,36 @@ jobs:
 
       - name: Run Unit Tests with JSON Output
         run: |
-          # Run tests and generate JSON output, even if some fail
           npx jest --json --outputFile=jest-output.json --runInBand
-        continue-on-error: true
+        continue-on-error: true  # Let pipeline continue even if tests fail
       
-      - name: Check Test Failures
+      - name: Check Test Failures by Severity
         run: |
-          # Check if the output file exists
           if [ ! -f "jest-output.json" ]; then
-            echo "jest-output.json not found. Skipping checks."
+            echo "jest-output.json not found. Skipping test analysis."
             exit 0
           fi
-      
-          # Count major test failures
-          major_failures=$(jq '[.testResults[].assertionResults[] | select(.status == "failed" and (.title | test("^major:")))] | length' jest-output.json)
-      
-          # Count minor test failures
-          minor_failures=$(jq '[.testResults[].assertionResults[] | select(.status == "failed" and (.title | test("^minor:")))] | length' jest-output.json)
-      
+
+          # Count failed major tests
+          major_failures=$(jq '[.testResults[].assertionResults[] | select(.status == "failed" and (.title | test("^major:"))) ] | length' jest-output.json)
+
+          # Count failed minor tests
+          minor_failures=$(jq '[.testResults[].assertionResults[] | select(.status == "failed" and (.title | test("^minor:"))) ] | length' jest-output.json)
+
           echo "❗ Major test failures: $major_failures"
-          echo "Minor test failures: $minor_failures"
-      
+          echo "⚠️ Minor test failures: $minor_failures"
+
+          # Fail the build only if there are major failures
           if [ "$major_failures" -gt 0 ]; then
-            echo "Build failed due to major test case failures."
+            echo "❌ Build failed due to major test failures."
             exit 1
           else
-            echo "No major test failures. Proceeding."
+            echo "✅ No major test failures. Proceeding."
           fi
-      
+
+          # If minor tests failed, just log the reason
           if [ "$minor_failures" -gt 0 ]; then
-            echo "⚠️ Minor test cases failed. Logged for reference, not blocking the build."
+            echo "Minor test cases failed. This is non-critical."
           fi
       
 
