@@ -42,8 +42,8 @@ jobs:
       - name: Run Unit Tests with JSON Output
         run: |
           npx jest --json --outputFile=jest-output.json --runInBand
-        continue-on-error: true  # Let pipeline continue even if tests fail
-      
+        continue-on-error: true  # Allow the pipeline to continue even if tests fail
+
       - name: Check Test Failures by Severity
         run: |
           if [ ! -f "jest-output.json" ]; then
@@ -51,24 +51,24 @@ jobs:
             exit 0
           fi
 
-          # Count failed major tests
+          # Extract major test failures (count of failed "major" tests)
           major_failures=$(jq '[.testResults[].assertionResults[] | select(.status == "failed" and (.title | test("^major:"))) ] | length' jest-output.json)
 
-          # Count failed minor tests
+          # Extract minor test failures (count of failed "minor" tests)
           minor_failures=$(jq '[.testResults[].assertionResults[] | select(.status == "failed" and (.title | test("^minor:"))) ] | length' jest-output.json)
 
-          echo "❗ Major test failures: $major_failures"
-          echo "⚠️ Minor test failures: $minor_failures"
+          echo "Major test failures: $major_failures"
+          echo "Minor test failures: $minor_failures"
 
-          # Fail the build only if there are major failures
+          # Fail the build only if there are major test failures
           if [ "$major_failures" -gt 0 ]; then
-            echo "❌ Build failed due to major test failures."
+            echo " Build failed due to major test failures."
             exit 1
           else
-            echo "✅ No major test failures. Proceeding."
+            echo "No major test failures. Proceeding."
           fi
 
-          # If minor tests failed, just log the reason
+          # Log minor test failures but allow the build to proceed
           if [ "$minor_failures" -gt 0 ]; then
             echo "Minor test cases failed. This is non-critical."
           fi
