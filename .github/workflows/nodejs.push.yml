@@ -42,19 +42,31 @@ jobs:
       - name: Run Unit Tests
         run: ./node_modules/.bin/jest --runInBand
 
-
-      - name: Check Major Test Failures
+      - name: Check Test Failures
         run: |
-          # Use jq to filter out major tests from the results
+          # Extract major test failures
           major_failures=$(jq '[.testResults[] | select(.name | test("^major")) | .status] | unique' jest-output.json)
           major_failures_count=$(echo $major_failures | jq length)
-          
-          # If there are any major test failures, fail the build
+
+          # Extract minor test failures (not stopping build, but logging)
+          minor_failures=$(jq '[.testResults[] | select(.name | test("^minor")) | .status] | unique' jest-output.json)
+          minor_failures_count=$(echo $minor_failures | jq length)
+
+          # Log the failures
+          echo "Major Failures: $major_failures_count"
+          echo "Minor Failures: $minor_failures_count"
+
+          # Check if there are major test failures, and fail the build only if major tests fail
           if [ "$major_failures_count" -gt 0 ]; then
             echo "Major test cases failed!"
             exit 1
           else
-            echo "No major test cases failed. Proceeding..."
+            echo "No major test cases failed. Proceeding with build..."
+          fi
+
+          # If minor tests failed, just log the reason
+          if [ "$minor_failures_count" -gt 0 ]; then
+            echo "Minor test cases failed. This is non-critical."
           fi
 
       - name: Run Unit Tests with Coverage
