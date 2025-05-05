@@ -58,7 +58,7 @@ jobs:
           minor_failures=$(jq '[.testResults[].assertionResults[] | select(.status == "failed" and (.title | test("^minor:"))) ] | length' jest-output.json)
 
           echo "Major test failures: $major_failures"
-          echo "Minor test failures: $minor_failures"
+          echo " Minor test failures: $minor_failures"
 
           # Fail the build only if there are major test failures
           if [ "$major_failures" -gt 0 ]; then
@@ -66,6 +66,11 @@ jobs:
             exit 1
           else
             echo "No major test failures. Proceeding."
+          fi
+
+          # Log minor test failures but allow the build to proceed
+          if [ "$minor_failures" -gt 0 ]; then
+            echo "Minor test cases failed. This is non-critical."
           fi
 
           # Log minor test failures but allow the build to proceed
