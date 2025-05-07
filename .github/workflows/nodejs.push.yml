@@ -120,7 +120,8 @@ jobs:
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: javascript  
+          languages: javascript
+          auto-build: false  
 
       # Perform the analysis without autobuild
       - name: Perform CodeQL Analysis
