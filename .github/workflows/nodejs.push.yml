@@ -116,13 +116,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      # Initialize CodeQL (no autobuild)
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
-          languages: javascript
+          languages: javascript  
 
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
-
+      # Perform the analysis without autobuild
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
