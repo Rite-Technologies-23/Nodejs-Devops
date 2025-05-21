@@ -101,3 +101,28 @@ jobs:
         uses: SonarSource/sonarqube-scan-action@v4
         env:
           SONAR_TOKEN: ${{  secrets.SONAR_TOKEN  }}
+
+          
+     
+  CodeQL-Analyze:
+    name: CodeQL Security Scan
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Initialize CodeQL (no autobuild)
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+           
+
+      # Perform the analysis without autobuild
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
